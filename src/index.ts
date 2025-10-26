@@ -30,7 +30,6 @@ app.onError((err, c) => {
       err.status as ContentfulStatusCode
     );
   }
-  console.error("Global error handler caught:", err);
   return c.json(
     {
       success: false,
