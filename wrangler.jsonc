@@ -6,7 +6,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "compatibility_date": "2025-10-08",
   "main": "src/index.ts",
-  "name": "rapid-feather-f133",
+  "name": "api-mpc",
   "upload_source_maps": true,
   "observability": {
     "enabled": true
