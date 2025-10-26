@@ -1,3 +1,3 @@
 import { Hono } from "hono";
 
-export const app = new Hono<{ Bindings: Env }>();
+export const app = new Hono<{ Bindings: Cloudflare.Env }>();

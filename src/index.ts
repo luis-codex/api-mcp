@@ -7,9 +7,9 @@ import { ordersRouter } from "./endpoints/orders/router";
 import { productsRouter } from "./endpoints/products/router";
 import { suppliersRouter } from "./endpoints/suppliers/router";
 import { app } from "./lib/app";
-import { mcpAlerts, mcpOrders, mcpProducts, mcpSuppliers } from "./mcp";
+import { mcpProducts } from "./mcp";
 
-export class MCP_OBJECT extends McpAgent<Env, {}> {
+export class MCP_OBJECT extends McpAgent<Cloudflare.Env> {
   server = new McpServer({
     name: "MCP SUPERMARKET",
     version: "1.0.0",
@@ -17,9 +17,6 @@ export class MCP_OBJECT extends McpAgent<Env, {}> {
 
   async init() {
     mcpProducts(this.server);
-    mcpSuppliers(this.server);
-    mcpOrders(this.server);
-    mcpAlerts(this.server);
   }
 }
 

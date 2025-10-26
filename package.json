@@ -26,7 +26,9 @@
     "test": "wrangler deploy --dry-run && npx vitest run --config tests/vitest.config.mts",
     "migrate": "wrangler d1 migrations create DB 001",
     "create-db:local": "wrangler d1 create openapi-template-db --local",
-    "create-db:remote": "wrangler d1 create openapi-template-db"
+    "create-db:remote": "wrangler d1 create openapi-template-db",
+    "migrate:local": "wrangler d1 migrations apply app-dev --local",
+    "migrate:prod": "wrangler d1 migrations apply app-prod"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.2",
