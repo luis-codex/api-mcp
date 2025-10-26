@@ -44,21 +44,10 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "app-dev",
+      "database_name": "db",
       "database_id": "0d2611e0-76f8-4708-864b-018a0f25e198"
     }
   ],
-  "env": {
-    "production": {
-      "d1_databases": [
-        {
-          "binding": "DB",
-          "database_name": "app-prod",
-          "database_id": "cddf634b-0337-4ba8-ad28-bfa445e6a358"
-        }
-      ]
-    }
-  },
   "durable_objects": {
     "bindings": [
       {

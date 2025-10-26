@@ -1,36 +1,61 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { product } from "../schemas/schemaProducts";
-import { app } from "../lib/app";
 import { env } from "cloudflare:workers";
+import { app } from "../lib/app";
+import { order } from "../schemas/schemaOrders";
 import { formatToolResponse } from "../utils";
 import { buildQueryString, listQuerySchema } from "./utils";
 
+const orderCreateSchema = order
+  .pick({
+    productId: true,
+    status: true,
+    priority: true,
+    quantity: true,
+    requestedBy: true,
+    notes: true,
+    expectedArrival: true,
+  })
+  .partial({
+    notes: true,
+    expectedArrival: true,
+  });
+
+const orderUpdateSchema = order
+  .pick({
+    id: true,
+    productId: true,
+    status: true,
+    priority: true,
+    quantity: true,
+    requestedBy: true,
+    notes: true,
+    expectedArrival: true,
+  })
+  .partial();
+
 const schemas = {
-  create: z.array(product.omit({ id: true, slug: true })).optional(),
-  update: z.array(product.partial()).optional(),
-  delete: z
-    .array(product.pick({ id: true }))
-    .min(1)
-    .optional(),
+  create: z.array(orderCreateSchema).optional(),
+  update: z.array(orderUpdateSchema).optional(),
+  delete: z.array(order.pick({ id: true })).min(1).optional(),
   readAll: listQuerySchema,
 };
 
-export function mcpProducts(server: McpServer) {
-  server.resource("products", "mcp://resource/products", (uri) => {
+export function mcpOrders(server: McpServer) {
+  server.resource("orders", "mcp://resource/orders", (uri) => {
     return {
       contents: [
-        { text: "Products Resource", uri: uri.href },
+        { text: "Orders Resource", uri: uri.href },
       ],
     };
   });
 
-  server.tool("PRODUCTS", "CRUD products", schemas, async (input) => {
+  server.tool("ORDERS", "CRUD orders", schemas, async (input) => {
     if (input.readAll) {
       try {
         const query = buildQueryString(input.readAll);
         const res = await app.request(
-          `/products${query ? `?${query}` : ""}`,
+          `/orders${query ? `?${query}` : ""}`,
           {
             method: "GET",
             headers: { accept: "application/json" },
@@ -40,23 +65,23 @@ export function mcpProducts(server: McpServer) {
         const json = await res.json();
         return formatToolResponse({ json });
       } catch (error) {
-        return formatToolResponse({ error, action: "reading products" });
+        return formatToolResponse({ error, action: "reading orders" });
       }
     }
 
     if (input.create?.length) {
       try {
         const json = await Promise.allSettled(
-          input.create.map(async (productPayload) => {
+          input.create.map(async (orderPayload) => {
             const res = await app.request(
-              `/products`,
+              `/orders`,
               {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
                   accept: "application/json",
                 },
-                body: JSON.stringify(productPayload),
+                body: JSON.stringify(orderPayload),
               },
               env
             );
@@ -65,21 +90,21 @@ export function mcpProducts(server: McpServer) {
         );
         return formatToolResponse({ json });
       } catch (error) {
-        return formatToolResponse({ error, action: "creating products" });
+        return formatToolResponse({ error, action: "creating orders" });
       }
     }
 
     if (input.update?.length) {
       try {
         const json = await Promise.allSettled(
-          input.update.map(async (productPayload) => {
-            const id = productPayload?.id;
+          input.update.map(async (orderPayload) => {
+            const id = orderPayload?.id;
             if (typeof id !== "number") {
               throw new Error("Each update payload needs a valid id");
             }
-            const { id: _id, ...updatedFields } = productPayload;
+            const { id: _id, ...updatedFields } = orderPayload;
             const res = await app.request(
-              `/products/${id}`,
+              `/orders/${id}`,
               {
                 method: "PUT",
                 headers: {
@@ -95,7 +120,7 @@ export function mcpProducts(server: McpServer) {
         );
         return formatToolResponse({ json });
       } catch (error) {
-        return formatToolResponse({ error, action: "updating products" });
+        return formatToolResponse({ error, action: "updating orders" });
       }
     }
 
@@ -104,7 +129,7 @@ export function mcpProducts(server: McpServer) {
         const json = await Promise.allSettled(
           input.delete.map(async ({ id }) => {
             const res = await app.request(
-              `/products/${id}`,
+              `/orders/${id}`,
               {
                 method: "DELETE",
                 headers: { accept: "application/json" },
@@ -116,7 +141,7 @@ export function mcpProducts(server: McpServer) {
         );
         return formatToolResponse({ json });
       } catch (error) {
-        return formatToolResponse({ error, action: "deleting products" });
+        return formatToolResponse({ error, action: "deleting orders" });
       }
     }
 

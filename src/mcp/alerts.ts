@@ -1,36 +1,59 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { product } from "../schemas/schemaProducts";
-import { app } from "../lib/app";
 import { env } from "cloudflare:workers";
+import { app } from "../lib/app";
+import { alert } from "../schemas/schemaAlerts";
 import { formatToolResponse } from "../utils";
 import { buildQueryString, listQuerySchema } from "./utils";
 
+const alertCreateSchema = alert
+  .pick({
+    productId: true,
+    type: true,
+    severity: true,
+    status: true,
+    message: true,
+    assignedTo: true,
+  })
+  .partial({
+    productId: true,
+    assignedTo: true,
+  });
+
+const alertUpdateSchema = alert
+  .pick({
+    id: true,
+    productId: true,
+    type: true,
+    severity: true,
+    status: true,
+    message: true,
+    assignedTo: true,
+  })
+  .partial();
+
 const schemas = {
-  create: z.array(product.omit({ id: true, slug: true })).optional(),
-  update: z.array(product.partial()).optional(),
-  delete: z
-    .array(product.pick({ id: true }))
-    .min(1)
-    .optional(),
+  create: z.array(alertCreateSchema).optional(),
+  update: z.array(alertUpdateSchema).optional(),
+  delete: z.array(alert.pick({ id: true })).min(1).optional(),
   readAll: listQuerySchema,
 };
 
-export function mcpProducts(server: McpServer) {
-  server.resource("products", "mcp://resource/products", (uri) => {
+export function mcpAlerts(server: McpServer) {
+  server.resource("alerts", "mcp://resource/alerts", (uri) => {
     return {
       contents: [
-        { text: "Products Resource", uri: uri.href },
+        { text: "Alerts Resource", uri: uri.href },
       ],
     };
   });
 
-  server.tool("PRODUCTS", "CRUD products", schemas, async (input) => {
+  server.tool("ALERTS", "CRUD alerts", schemas, async (input) => {
     if (input.readAll) {
       try {
         const query = buildQueryString(input.readAll);
         const res = await app.request(
-          `/products${query ? `?${query}` : ""}`,
+          `/alerts${query ? `?${query}` : ""}`,
           {
             method: "GET",
             headers: { accept: "application/json" },
@@ -40,23 +63,23 @@ export function mcpProducts(server: McpServer) {
         const json = await res.json();
         return formatToolResponse({ json });
       } catch (error) {
-        return formatToolResponse({ error, action: "reading products" });
+        return formatToolResponse({ error, action: "reading alerts" });
       }
     }
 
     if (input.create?.length) {
       try {
         const json = await Promise.allSettled(
-          input.create.map(async (productPayload) => {
+          input.create.map(async (alertPayload) => {
             const res = await app.request(
-              `/products`,
+              `/alerts`,
               {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
                   accept: "application/json",
                 },
-                body: JSON.stringify(productPayload),
+                body: JSON.stringify(alertPayload),
               },
               env
             );
@@ -65,21 +88,21 @@ export function mcpProducts(server: McpServer) {
         );
         return formatToolResponse({ json });
       } catch (error) {
-        return formatToolResponse({ error, action: "creating products" });
+        return formatToolResponse({ error, action: "creating alerts" });
       }
     }
 
     if (input.update?.length) {
       try {
         const json = await Promise.allSettled(
-          input.update.map(async (productPayload) => {
-            const id = productPayload?.id;
+          input.update.map(async (alertPayload) => {
+            const id = alertPayload?.id;
             if (typeof id !== "number") {
               throw new Error("Each update payload needs a valid id");
             }
-            const { id: _id, ...updatedFields } = productPayload;
+            const { id: _id, ...updatedFields } = alertPayload;
             const res = await app.request(
-              `/products/${id}`,
+              `/alerts/${id}`,
               {
                 method: "PUT",
                 headers: {
@@ -95,7 +118,7 @@ export function mcpProducts(server: McpServer) {
         );
         return formatToolResponse({ json });
       } catch (error) {
-        return formatToolResponse({ error, action: "updating products" });
+        return formatToolResponse({ error, action: "updating alerts" });
       }
     }
 
@@ -104,7 +127,7 @@ export function mcpProducts(server: McpServer) {
         const json = await Promise.allSettled(
           input.delete.map(async ({ id }) => {
             const res = await app.request(
-              `/products/${id}`,
+              `/alerts/${id}`,
               {
                 method: "DELETE",
                 headers: { accept: "application/json" },
@@ -116,7 +139,7 @@ export function mcpProducts(server: McpServer) {
         );
         return formatToolResponse({ json });
       } catch (error) {
-        return formatToolResponse({ error, action: "deleting products" });
+        return formatToolResponse({ error, action: "deleting alerts" });
       }
     }
 

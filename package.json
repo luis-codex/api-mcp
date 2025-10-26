@@ -1,5 +1,5 @@
 {
-  "name": "chanfana-openapi-template",
+  "name": "api-mcp",
   "description": "Complete backend API template using Hono + Chanfana + D1 + Vitest.",
   "private": true,
   "cloudflare": {
@@ -23,12 +23,7 @@
     "predeploy": "wrangler d1 migrations apply DB --remote",
     "seedLocalDb": "wrangler d1 migrations apply DB --local",
     "schema": "npx chanfana",
-    "test": "wrangler deploy --dry-run && npx vitest run --config tests/vitest.config.mts",
-    "migrate": "wrangler d1 migrations create DB 001",
-    "create-db:local": "wrangler d1 create openapi-template-db --local",
-    "create-db:remote": "wrangler d1 create openapi-template-db",
-    "migrate:local": "wrangler d1 migrations apply app-dev --local",
-    "migrate:prod": "wrangler d1 migrations apply app-prod"
+    "test": "wrangler deploy --dry-run && npx vitest run --config tests/vitest.config.mts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.2",
