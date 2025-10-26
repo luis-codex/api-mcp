@@ -1,0 +1,3 @@
+pnpm wrangler d1 migrations apply DB --local
+pnpm wrangler d1 migrations apply DB --remote
+pnpm wrangler deploy
